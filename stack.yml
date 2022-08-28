@@ -26,7 +26,7 @@ services:
       - elasticsearch
 
   fluentd-arm:
-    image: asudarsanan/sudarnet-log-fd:0.1-arm
+    image: asudarsanan/sudarnet-log-fd:1.0-arm
     volumes:
       - ./fluentd/conf:/fluentd/etc
     links:
