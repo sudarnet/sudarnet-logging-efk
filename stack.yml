@@ -1,0 +1,71 @@
+version: "3.8"
+
+# Define the Docker volume named esdata for the Elasticsearch container.
+volumes:
+  esdata:
+
+# Deploying three container services (fluentd, elasticsearch, and kibana)
+services:
+  fluentd:
+    build: ./fluentd
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+    links:
+      - "elasticsearch"
+    # ports:
+    #   - "24224:24224"
+    #   - "24224:24224/udp"
+    networks:
+      - traefik-public
+    deploy:
+      mode: global
+    depends_on:
+      - elasticsearch
+
+  elasticsearch:
+    image: elasticsearch:7.17.0
+    expose: # Exposes the default port 9200
+      - 9200
+    environment:
+      - discovery.type=single-node # Runs as a single-node
+    volumes: # Stores elasticsearch data locally on the esdata Docker volume
+      - esdata:/usr/share/elasticsearch/data
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+          constraints: [node.labels.sudarnet.allow.elasticsearch == true]
+    networks:
+      - traefik-public
+
+  kibana:
+    image: kibana:7.17.0
+    links: # Links kibana service to the elasticsearch container
+      - elasticsearch
+    depends_on:
+      - elasticsearch
+    # ports: # Runs kibana service on default port 5601
+    #   - 5601:5601
+    environment: # Defined host configuration
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+          constraints: [node.labels.sudarnet.allow.kibana == true]
+      labels:
+      # Traefik configuration, Hostname needs to be changed
+      - traefik.enable=true
+      - traefik.http.services.kibana-https.loadbalancer.server.port=5601
+      - traefik.http.routers.kibana-https.rule=Host(`decoy.sudarnet.online`)
+      - traefik.http.routers.kibana-https.entrypoints=https
+      - traefik.http.routers.kibana-https.tls=true
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      - traefik.http.routers.kibana-https.tls.certresolver=le
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true
