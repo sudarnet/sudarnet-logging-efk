@@ -7,7 +7,7 @@ volumes:
 # Deploying three container services (fluentd, elasticsearch, and kibana)
 services:
   fluentd-amd:
-    image: asudarsanan/sudarnet-log-fd:0.1
+    image: asudarsanan/sudarnet-log-fd:0.2
     volumes:
       - ./fluentd/conf:/fluentd/etc
     links:
@@ -25,7 +25,7 @@ services:
       - elasticsearch
 
   fluentd-arm:
-    image: asudarsanan/sudarnet-log-fd:1.0-arm
+    image: asudarsanan/sudarnet-log-fd:0.2
     volumes:
       - ./fluentd/conf:/fluentd/etc
     links:
