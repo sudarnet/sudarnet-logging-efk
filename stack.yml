@@ -6,7 +6,7 @@ volumes:
 
 # Deploying three container services (fluentd, elasticsearch, and kibana)
 services:
-  fluentd:
+  fluentd-amd:
     image: asudarsanan/sudarnet-log-fd:0.1
     volumes:
       - ./fluentd/conf:/fluentd/etc
@@ -18,9 +18,32 @@ services:
     networks:
       - traefik-public
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 1
+      placement:
+          constraints: [node.labels.sudarnet.allow.amd == true]
     depends_on:
       - elasticsearch
+
+  fluentd-arm:
+    image: asudarsanan/sudarnet-log-fd:0.1-arm
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+    links:
+      - "elasticsearch"
+    # ports:
+    #   - "24224:24224"
+    #   - "24224:24224/udp"
+    networks:
+      - traefik-public
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+          constraints: [node.labels.sudarnet.allow.arm == true]
+    depends_on:
+      - elasticsearch
+
 
   elasticsearch:
     image: elasticsearch:7.17.0
