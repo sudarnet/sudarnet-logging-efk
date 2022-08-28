@@ -18,8 +18,7 @@ services:
     networks:
       - traefik-public
     deploy:
-      mode: replicated
-      replicas: 1
+      mode: global
       placement:
           constraints: [node.labels.sudarnet.allow.amd == true]
     depends_on:
@@ -37,8 +36,7 @@ services:
     networks:
       - traefik-public
     deploy:
-      mode: replicated
-      replicas: 1
+      mode: global
       placement:
           constraints: [node.labels.sudarnet.allow.arm == true]
     depends_on:
